@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Misión Epidemiológica: HTA</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-pink-100 min-h-screen flex items-center justify-center">
+
+<div class="absolute top-4 right-4 bg-white p-3 rounded-xl shadow w-64">
+  <h3 class="font-bold text-center">🏆 Ranking</h3>
+  <ol id="ranking" class="text-sm list-decimal list-inside"></ol>
+</div>
+
+<div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-2xl text-center">
+  <h1 class="text-3xl font-bold mb-4">🎮 Misión Epidemiológica</h1>
+  <p class="mb-4">Tras la pista de la Hipertensión</p>
+
+  <div id="game"></div>
+
+  <p id="score" class="mt-4 font-bold">Puntuación: 100 🤩</p>
+</div>
+
+<script>
+let score = 100;
+let level = 0;
+let player = "";
+
+const levels = [
+  {
+    q: "Nivel 1️⃣ ¿Cuál es la pregunta PICO correcta para un estudio de prevalencia de HTA?",
+    options: [
+      "¿La medicación X reduce la HTA frente a placebo?",
+      "¿Cuál es la prevalencia de HTA en adultos de la población general?",
+      "¿Qué tratamiento es más eficaz para HTA?"
+    ],
+    correct: 1
+  },
+  {
+    q: "Nivel 2️⃣ Estima la media aproximada de estas PAD: 78, 82, 85, 90, 88, 76, 84, 92, 80, 86",
+    options: [
+      "70 mmHg",
+      "84 mmHg",
+      "95 mmHg"
+    ],
+    correct: 1
+  },
+  {
+    q: "Nivel 3️⃣ El IC 95% de la media PAD es 77,49 – 90,51. El valor 74,4 mmHg:",
+    options: [
+      "Está dentro del IC",
+      "Está fuera del IC",
+      "No se puede saber"
+    ],
+    correct: 1
+  },
+  {
+    q: "Nivel 4️⃣ En una consulta: 58 HTA de 200 pacientes. ¿Prevalencia?",
+    options: [
+      "15%",
+      "29%",
+      "40%"
+    ],
+    correct: 1
+  },
+  {
+    q: "Nivel 5️⃣ Tabla 2x2 educación sanitaria – HTA\n\nEducación SÍ: 20 HTA / 80 no HTA\nEducación NO: 40 HTA / 60 no HTA\n\nChi² p = 0,003. ¿Conclusión?",
+    options: [
+      "No existe relación",
+      "Existe asociación estadísticamente significativa",
+      "Demuestra causalidad"
+    ],
+    correct: 1
+  },
+  {
+    q: "Nivel 6️⃣ Según Guías de Práctica Clínica, ¿qué decisión es correcta?",
+    options: [
+      "Aplicar solo los datos locales",
+      "Reforzar educación sanitaria y cribado de HTA",
+      "No hacer cambios"
+    ],
+    correct: 1
+  }
+];
+
+function startGame() {
+  const g = document.getElementById("game");
+  g.innerHTML = `
+    <p class="mb-4">Introduce tu nombre:</p>
+    <input id="name" class="border p-2 rounded mb-4 w-full"/>
+    <button onclick="begin()" class="bg-blue-400 text-white px-4 py-2 rounded hover:bg-yellow-400">
+      Empezar
+    </button>
+  `;
+}
+
+function begin() {
+  player = document.getElementById("name").value || "Jugador/a";
+  showLevel();
+}
+
+function showLevel() {
+  if (level >= levels.length) return endGame();
+
+  const l = levels[level];
+  const g = document.getElementById("game");
+
+  g.innerHTML = `
+    <p class="font-semibold mb-4">${l.q.replace(/\n/g,"<br>")}</p>
+    ${l.options.map((o,i)=>`
+      <button onclick="answer(${i})"
+        class="block w-full mb-2 bg-blue-300 text-white py-2 rounded hover:bg-green-400">
+        ${o}
+      </button>
+    `).join("")}
+  `;
+}
+
+function answer(i) {
+  if (i === levels[level].correct) {
+    score += 10;
+  } else {
+    score -= 10;
+  }
+  level++;
+  updateScore();
+  showLevel();
+}
+
+function updateScore() {
+  let emoji = score >= 100 ? "🤩" : score >= 70 ? "🙂" : "😢";
+  document.getElementById("score").innerText = `Puntuación: ${score} ${emoji}`;
+}
+
+function endGame() {
+  saveScore();
+  document.getElementById("game").innerHTML = `
+    <h2 class="text-2xl font-bold mb-4">🎉 Juego completado</h2>
+    <p class="mb-4">${player}, has finalizado la misión.</p>
+    <p class="font-bold">Puntuación final: ${score}</p>
+  `;
+  loadRanking();
+}
+
+function saveScore() {
+  let r = JSON.parse(localStorage.getItem("ranking") || "[]");
+  r.push({name: player, score});
+  r.sort((a,b)=>b.score-a.score);
+  r = r.slice(0,10);
+  localStorage.setItem("ranking", JSON.stringify(r));
+}
+
+function loadRanking() {
+  let r = JSON.parse(localStorage.getItem("ranking") || "[]");
+  document.getElementById("ranking").innerHTML =
+    r.map(e=>`<li>${e.name}: ${e.score}</li>`).join("");
+}
+
+startGame();
+loadRanking();
+</script>
+
+</body>
+</html>
